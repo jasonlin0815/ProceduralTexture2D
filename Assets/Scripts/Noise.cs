@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Noise
+public class Noise
 {
-    public static float[] GenerateNoiseMap(int width, int height, float scale, int octaves, float persistance, float lacunarity, float movement, float animateDelta)
+    public float[] GenerateNoiseMap(int width, int height, float scale, int octaves, float persistance, float lacunarity, float movement, float animateDelta)
     {
         // Allocate space to generate noise map containing the terrain height at x coordinate
         float[] noiseMap = new float[width];
