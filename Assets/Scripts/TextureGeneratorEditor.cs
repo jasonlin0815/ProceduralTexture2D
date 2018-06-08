@@ -29,7 +29,9 @@ public class TextureGeneratorEditor : Editor
     #endregion
 
     #region Audio options
+    SerializedProperty listenToAudio;
     SerializedProperty audioChannel;
+    SerializedProperty audioThreshold;
     #endregion
 
     private void OnEnable()
@@ -48,7 +50,9 @@ public class TextureGeneratorEditor : Editor
         lacunarity = serializedObject.FindProperty("lacunarity");
         scale = serializedObject.FindProperty("scale");
 
+        listenToAudio = serializedObject.FindProperty("listenToAudio");
         audioChannel = serializedObject.FindProperty("audioChannel");
+        audioThreshold = serializedObject.FindProperty("audioThreshold");
     }
 
     public override void OnInspectorGUI()
@@ -97,7 +101,11 @@ public class TextureGeneratorEditor : Editor
         showAudioOptions = EditorGUILayout.Foldout(showAudioOptions, "Audio Options");
         if (showAudioOptions)
         {
+            listenToAudio.boolValue = EditorGUILayout.BeginToggleGroup("Audio Listener", listenToAudio.boolValue);
             EditorGUILayout.PropertyField(audioChannel);
+            EditorGUILayout.PropertyField(audioThreshold);
+
+            EditorGUILayout.EndToggleGroup();
         }
     }
 }

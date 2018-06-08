@@ -49,9 +49,20 @@ public class TextureGenerator : MonoBehaviour
     [SerializeField]
     private float scale;
 
+    [SerializeField]
+    private bool listenToAudio = false;
+
     [Range(0, 7)]
     [SerializeField]
     private int audioChannel;
+
+    [Range(0, 1)]
+    [SerializeField]
+    private float audioThreshold;
+
+    [Range(1, 2)]
+    [SerializeField]
+    private float increaseScale;
 
     private Texture2D texture;
     private SpriteRenderer spriteRenderer;
@@ -83,6 +94,8 @@ public class TextureGenerator : MonoBehaviour
         // Clear();
         Generate(movement, timeLapse);
         Apply();
+
+        ListenToMusic();
     }
 
     public void Clear()
@@ -138,6 +151,9 @@ public class TextureGenerator : MonoBehaviour
 
     public void ListenToMusic()
     {
-
+        if (listenToAudio)
+        {
+            Debug.Log(AudioAnalyzer.instance.audioBand[audioChannel]);
+        }
     }
 }
