@@ -74,9 +74,10 @@ public class TextureGenerator : MonoBehaviour
     private float timeLapse = 0;
     private float currentResponseScale = 1;
     private Noise noise;
-
+    private Material mat;
     private void Awake()
     {
+        mat = ((Renderer)GetComponent(typeof(Renderer))).material;
         // Create a Texture2D object with given width and height
         texture = new Texture2D(width, height);
         noise = new Noise();
@@ -86,9 +87,6 @@ public class TextureGenerator : MonoBehaviour
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
 
         spriteRenderer.sprite = sprite;
-
-        // Initialize the texture with empty colors
-        Clear();
     }
 
     private void Update()
@@ -97,9 +95,7 @@ public class TextureGenerator : MonoBehaviour
         timeLapse += Time.deltaTime * animateSpeed;
 
         ListenToMusic();
-        // Clear();
         Generate(movement, timeLapse);
-        Apply();
     }
 
     public void Clear()
@@ -113,56 +109,58 @@ public class TextureGenerator : MonoBehaviour
         texture.SetPixels(colors.ToArray());
     }
 
-    public void Generate(float movement, float time)
+    private float[] ApplyFrequency(float[] heightmap)
     {
-        // Generate Noise to create terrrain line
-        float[] heightmap = noise.GenerateNoiseMap(width, height, scale, octaves, persistance, lacunarity, movement, time);
-        Color[] colors = new Color[width * height];
-        int[] outlines = new int[width];
-
-        for (int h = 0; h < height; h++)
+        // Only execute if necessary
+        if (currentResponseScale > 1)
         {
-            for (int w = 0; w < width; w++)
+            for (int h = 0; h < heightmap.Length; ++h)
             {
-                Color pixelColor = Color.clear;
-
-                // When height is lower than the heightmap noise, fill with blend of colors
-                if (h < (int)(heightmap[w] * currentResponseScale))
-                {
-                    pixelColor = terrainMainColor;
-                }
-                else
-                {
-                    if (showTerrainOutline && outlines[w] < terrainOutlineSize)
-                    {
-                        pixelColor = terrainOutlineColor;
-                        outlines[w]++;
-                    }
-                }
-
-                colors[h * width + w] = pixelColor;
+                heightmap[h] *= currentResponseScale;
             }
         }
 
-        texture.SetPixels(0, 0, width, height, colors);
+        return heightmap;
     }
 
-    public void Apply()
+    public void Generate(float movement, float time)
     {
-        // Apply the pixel changes to texture
-        texture.Apply(false);
+        // Pass information to shader
+        mat.SetColor("_Color", terrainMainColor);
+        mat.SetColor("_OutlineColor", terrainOutlineColor);
+        mat.SetInt("_OutlinePixel", (showTerrainOutline) ? terrainOutlineSize : 0);
+
+        // Generate Noise to create terrrain line
+        float[] heightmap = noise.GenerateNoiseMap(width, height, scale, octaves, persistance, lacunarity, movement, time);
+
+        // Apply music frequency to height map
+        heightmap = ApplyFrequency(heightmap);
+
+        // Transform the heightmap to 2D texture for shader processing
+        Texture2D heightmapTexture = new Texture2D(width, 1);
+        Color[] colors = new Color[width];
+        for(int i = 0; i < heightmap.Length; ++i)
+        {
+            colors[i] = new Color(heightmap[i] / height * 256.0f, 0, 0);
+        }
+        heightmapTexture.SetPixels(colors);
+
+        mat.SetTexture("_HeightMap", heightmapTexture);
     }
 
     public void ListenToMusic()
     {
+        // If the texture is listening to BGM music
         if (listenToAudio)
         {
+            // Obtain the audio band result from AudioAnalyzer, and apply response scale to the texture if the result exceed the threshold
             if (AudioAnalyzer.instance.audioBand[audioChannel] > audioThreshold)
             {
                 currentResponseScale = musicResponseScale;
             }
         }
 
+        // Buffer the texture scale jitter
         currentResponseScale -= Time.deltaTime * musicDecayRate;
         currentResponseScale = Mathf.Clamp(currentResponseScale, 1, musicResponseScale);
     }
