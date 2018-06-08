@@ -62,12 +62,17 @@ public class TextureGenerator : MonoBehaviour
 
     [Range(1, 2)]
     [SerializeField]
-    private float increaseScale;
+    private float musicResponseScale;
+
+    [Range(0, 5)]
+    [SerializeField]
+    private float musicDecayRate;
 
     private Texture2D texture;
     private SpriteRenderer spriteRenderer;
     private float movement = 0;
     private float timeLapse = 0;
+    private float currentResponseScale = 1;
     private Noise noise;
 
     private void Awake()
@@ -91,11 +96,10 @@ public class TextureGenerator : MonoBehaviour
         movement += Time.deltaTime * moveSpeed;
         timeLapse += Time.deltaTime * animateSpeed;
 
+        ListenToMusic();
         // Clear();
         Generate(movement, timeLapse);
         Apply();
-
-        ListenToMusic();
     }
 
     public void Clear()
@@ -123,7 +127,7 @@ public class TextureGenerator : MonoBehaviour
                 Color pixelColor = Color.clear;
 
                 // When height is lower than the heightmap noise, fill with blend of colors
-                if (h < (int)heightmap[w])
+                if (h < (int)(heightmap[w] * currentResponseScale))
                 {
                     pixelColor = terrainMainColor;
                 }
@@ -153,7 +157,13 @@ public class TextureGenerator : MonoBehaviour
     {
         if (listenToAudio)
         {
-            Debug.Log(AudioAnalyzer.instance.audioBand[audioChannel]);
+            if (AudioAnalyzer.instance.audioBand[audioChannel] > audioThreshold)
+            {
+                currentResponseScale = musicResponseScale;
+            }
         }
+
+        currentResponseScale -= Time.deltaTime * musicDecayRate;
+        currentResponseScale = Mathf.Clamp(currentResponseScale, 1, musicResponseScale);
     }
 }

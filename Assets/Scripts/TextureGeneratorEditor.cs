@@ -32,6 +32,8 @@ public class TextureGeneratorEditor : Editor
     SerializedProperty listenToAudio;
     SerializedProperty audioChannel;
     SerializedProperty audioThreshold;
+    SerializedProperty musicResponseScale;
+    SerializedProperty musicDecayRate;
     #endregion
 
     private void OnEnable()
@@ -53,6 +55,8 @@ public class TextureGeneratorEditor : Editor
         listenToAudio = serializedObject.FindProperty("listenToAudio");
         audioChannel = serializedObject.FindProperty("audioChannel");
         audioThreshold = serializedObject.FindProperty("audioThreshold");
+        musicResponseScale = serializedObject.FindProperty("musicResponseScale");
+        musicDecayRate = serializedObject.FindProperty("musicDecayRate");
     }
 
     public override void OnInspectorGUI()
@@ -104,6 +108,8 @@ public class TextureGeneratorEditor : Editor
             listenToAudio.boolValue = EditorGUILayout.BeginToggleGroup("Audio Listener", listenToAudio.boolValue);
             EditorGUILayout.PropertyField(audioChannel);
             EditorGUILayout.PropertyField(audioThreshold);
+            EditorGUILayout.PropertyField(musicResponseScale);
+            EditorGUILayout.PropertyField(musicDecayRate);
 
             EditorGUILayout.EndToggleGroup();
         }

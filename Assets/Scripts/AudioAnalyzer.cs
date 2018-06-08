@@ -8,6 +8,9 @@ public class AudioAnalyzer : MonoBehaviour
     [SerializeField]
     private int samplingSize = 512;
 
+    [SerializeField]
+    private float audioPlayDelay = 5.0f;
+
     private AudioSource audioSource;
     private float[] audioSamples;
 
@@ -44,6 +47,14 @@ public class AudioAnalyzer : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         audioSamples = new float[samplingSize];
+
+        StartCoroutine(DelayAudioPlay());
+    }
+
+    IEnumerator DelayAudioPlay()
+    {
+        yield return new WaitForSeconds(audioPlayDelay);
+        audioSource.Play();
     }
 
     private void Update()
