@@ -31,10 +31,6 @@ Shader "Custom/PerlinNoise"
         CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-
-            // Allocate array for heightmap information
-            float _Segments[1023];
-
             // Defines the main color
             fixed4 _Color;
 
@@ -46,10 +42,12 @@ Shader "Custom/PerlinNoise"
 
             // Defines MainTexture texture
             sampler2D _MainTex;
-            float4 _MainTex_TexelSize;
 
             // Defines heightmap texture
             sampler2D _HeightMap;
+
+            // Defines heigtmap cap
+            int _HeightCap;
 
             struct a2v
             {
@@ -75,14 +73,15 @@ Shader "Custom/PerlinNoise"
             fixed4 frag(v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_HeightMap, i.uv.xy);
+
                 // Any pixel lower than the height, use main color
-                if (i.pos.y < col.r * _MainTex_TexelSize.w)
+                if (i.pos.y < col.r * _HeightCap)
                 {
                     return _Color;
                 }
 
                 // Draw outline
-                else if (i.pos.y < col.r * _MainTex_TexelSize.w + _OutlinePixel)
+                else if (i.pos.y < col.r * _HeightCap + _OutlinePixel)
                 {
                     return _OutlineColor;
                 }

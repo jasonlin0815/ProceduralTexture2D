@@ -7,12 +7,17 @@ using UnityEditor;
 public class TextureGeneratorEditor : Editor
 {
     private bool showTextureOptions = true;
+    private bool showTerrainOptions = false;
     private bool showNoiseOptions = false;
     private bool showAudioOptions = false;
 
     #region Texture options
     SerializedProperty width;
     SerializedProperty height;
+    #endregion
+
+    #region Terrain options
+    SerializedProperty terrainHeightCap;
     SerializedProperty terrainMainColor;
     SerializedProperty showTerrainOutline;
     SerializedProperty terrainOutlineColor;
@@ -40,6 +45,8 @@ public class TextureGeneratorEditor : Editor
     {
         width = serializedObject.FindProperty("width");
         height = serializedObject.FindProperty("height");
+
+        terrainHeightCap = serializedObject.FindProperty("terrainHeightCap");
         terrainMainColor = serializedObject.FindProperty("terrainMainColor");
         showTerrainOutline = serializedObject.FindProperty("showTerrainOutline");
         terrainOutlineColor = serializedObject.FindProperty("terrainOutlineColor");
@@ -64,8 +71,11 @@ public class TextureGeneratorEditor : Editor
         serializedObject.Update();
 
         TextureGUI();
+        TerrainGUI();
         NoiseGUI();
         AudioGUI();
+
+        // EditorGUI();
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -77,6 +87,15 @@ public class TextureGeneratorEditor : Editor
         {
             EditorGUILayout.PropertyField(width);
             EditorGUILayout.PropertyField(height);
+        }
+    }
+
+    private void TerrainGUI()
+    {
+        showTerrainOptions = EditorGUILayout.Foldout(showTerrainOptions, "Terrain Options");
+        if (showTerrainOptions)
+        {
+            EditorGUILayout.PropertyField(terrainHeightCap);
             EditorGUILayout.PropertyField(terrainMainColor);
 
             showTerrainOutline.boolValue = EditorGUILayout.BeginToggleGroup("Terrain Outline", showTerrainOutline.boolValue);
@@ -112,6 +131,15 @@ public class TextureGeneratorEditor : Editor
             EditorGUILayout.PropertyField(musicDecayRate);
 
             EditorGUILayout.EndToggleGroup();
+        }
+    }
+
+    private void EditorGUI()
+    {
+        TextureGenerator textureGenerator = (TextureGenerator)target;
+        if (GUILayout.Button("Generate"))
+        {
+            textureGenerator.Generate();
         }
     }
 }

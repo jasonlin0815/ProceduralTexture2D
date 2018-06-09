@@ -13,6 +13,9 @@ public class TextureGenerator : MonoBehaviour
     private int height;
 
     [SerializeField]
+    private int terrainHeightCap;
+
+    [SerializeField]
     private Color terrainMainColor;
 
     [SerializeField]
@@ -64,7 +67,7 @@ public class TextureGenerator : MonoBehaviour
     [SerializeField]
     private float musicResponseScale;
 
-    [Range(0, 5)]
+    [Range(0, 1)]
     [SerializeField]
     private float musicDecayRate;
 
@@ -75,6 +78,7 @@ public class TextureGenerator : MonoBehaviour
     private float currentResponseScale = 1;
     private Noise noise;
     private Material mat;
+
     private void Awake()
     {
         mat = ((Renderer)GetComponent(typeof(Renderer))).material;
@@ -95,18 +99,7 @@ public class TextureGenerator : MonoBehaviour
         timeLapse += Time.deltaTime * animateSpeed;
 
         ListenToMusic();
-        Generate(movement, timeLapse);
-    }
-
-    public void Clear()
-    {
-        // Fill the color array
-        List<Color> colors = new List<Color>();
-        for (int h = 0; h < height; ++h)
-        {
-            colors.AddRange(Enumerable.Repeat<Color>(Color.clear, width));
-        }
-        texture.SetPixels(colors.ToArray());
+        Create(movement, timeLapse);
     }
 
     private float[] ApplyFrequency(float[] heightmap)
@@ -123,11 +116,12 @@ public class TextureGenerator : MonoBehaviour
         return heightmap;
     }
 
-    public void Generate(float movement, float time)
+    private void Create(float movement, float time)
     {
         // Pass information to shader
         mat.SetColor("_Color", terrainMainColor);
         mat.SetColor("_OutlineColor", terrainOutlineColor);
+        mat.SetInt("_HeightCap", (terrainHeightCap == 0) ? height : terrainHeightCap);
         mat.SetInt("_OutlinePixel", (showTerrainOutline) ? terrainOutlineSize : 0);
 
         // Generate Noise to create terrrain line
@@ -141,14 +135,15 @@ public class TextureGenerator : MonoBehaviour
         Color[] colors = new Color[width];
         for(int i = 0; i < heightmap.Length; ++i)
         {
-            colors[i] = new Color(heightmap[i] / height * 256.0f, 0, 0);
+            colors[i] = new Color(heightmap[i] / height, 0, 0);
         }
         heightmapTexture.SetPixels(colors);
+        heightmapTexture.Apply();
 
         mat.SetTexture("_HeightMap", heightmapTexture);
     }
 
-    public void ListenToMusic()
+    private void ListenToMusic()
     {
         // If the texture is listening to BGM music
         if (listenToAudio)
@@ -163,5 +158,24 @@ public class TextureGenerator : MonoBehaviour
         // Buffer the texture scale jitter
         currentResponseScale -= Time.deltaTime * musicDecayRate;
         currentResponseScale = Mathf.Clamp(currentResponseScale, 1, musicResponseScale);
+    }
+
+    public void Clear()
+    {
+        // Fill the color array
+        List<Color> colors = new List<Color>();
+        for (int h = 0; h < height; ++h)
+        {
+            colors.AddRange(Enumerable.Repeat<Color>(Color.clear, width));
+        }
+        texture.SetPixels(colors.ToArray());
+    }
+
+    public void Generate()
+    {
+        Clear();
+
+        ListenToMusic();
+        Create(0,0);
     }
 }
