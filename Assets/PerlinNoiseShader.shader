@@ -44,34 +44,45 @@ Shader "Custom/PerlinNoise"
             // Defines the outline color
             int _OutlinePixel;
 
+            // Defines MainTexture texture
+            sampler2D _MainTex;
+            float4 _MainTex_TexelSize;
+
+            // Defines heightmap texture
+            sampler2D _HeightMap;
+
             struct a2v
             {
                 float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
                 float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
             };
 
             v2f vert(a2v v)
             {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv = v.uv;
 
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
+                fixed4 col = tex2D(_HeightMap, i.uv.xy);
                 // Any pixel lower than the height, use main color
-                if (i.pos.y < _Segments[i.pos.x])
+                if (i.pos.y < col.r * _MainTex_TexelSize.w)
                 {
                     return _Color;
                 }
 
                 // Draw outline
-                else if (i.pos.y < _Segments[i.pos.x] + _OutlinePixel)
+                else if (i.pos.y < col.r * _MainTex_TexelSize.w + _OutlinePixel)
                 {
                     return _OutlineColor;
                 }
